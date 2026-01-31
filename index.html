@@ -1,1 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>婚外彼氏の沈黙、その正体。 | SILENT TRUTH</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Shippori Mincho"', '"Noto Serif JP"', 'serif'],
+                        elegant: ['"Cormorant Garamond"', 'serif'],
+                    },
+                    colors: {
+                        pearl: {
+                            light: '#fdfcfb',
+                            base: '#f5f0ed',
+                            dark: '#e2d1c3'
+                        },
+                        night: {
+                            purple: '#2d1b33',
+                            deep: '#1a0f1d',
+                            accent: '#4a3055'
+                        },
+                        gold: '#b89c7d'
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-feature-settings: "palt";
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: 0.08em;
+            background-color: #1a0f1d;
+            color: #f5f0ed;
+            overflow-x: hidden;
+        }
+        .reveal { 
+            opacity: 0; 
+            transform: translateY(40px); 
+            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1), 
+                        transform 1.5s cubic-bezier(0.25, 1, 0.5, 1); 
+        }
+        .reveal.visible { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+        
+        .cursor-dot, .cursor-outline {
+            position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            border-radius: 50%; z-index: 9999; pointer-events: none;
+        }
+        .cursor-dot { width: 5px; height: 5px; background-color: #fdfcfb; }
+        .cursor-outline { width: 35px; height: 35px; border: 1px solid rgba(253, 252, 251, 0.3); transition: all 0.4s ease-out; }
+        
+        .water-grad {
+            background: linear-gradient(135deg, #1a0f1d 0%, #2d1b33 50%, #1a0f1d 100%);
+        }
+        .readable-text {
+            line-height: 2.4;
+            letter-spacing: 0.12em;
+        }
+        .loader {
+            position: fixed; inset: 0; background: #1a0f1d; z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 1.2s ease;
+        }
+        .loader.hidden { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body class="font-serif">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const CustomCursor = () => {
+    const dotRef = useRef(null);
+    const outlineRef = useRef(null);
+    useEffect(() => {
+        const move = (e) => {
+            if (dotRef.current) {
+                dotRef.current.style.left = `${e.clientX}px`;
+                dotRef.current.style.top = `${e.clientY}px`;
+            }
+            if (outlineRef.current) {
+                outlineRef.current.animate(
+                    { left: `${e.clientX}px`, top: `${e.clientY}px` },
+                    { duration: 600, fill: "forwards" }
+                );
+            }
+        };
+        window.addEventListener('mousemove', move);
+        return () => window.removeEventListener('mousemove', move);
+    }, []);
+    return (
+        <React.Fragment>
+            <div ref={dotRef} className="cursor-dot hidden md:block"></div>
+            <div ref={outlineRef} className="cursor-outline hidden md:block"></div>
+        </React.Fragment>
+    );
+};
+
+const App = () => {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+        if (loading) return;
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        const elements = document.querySelectorAll('.reveal');
+        elements.forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+    }, [loading]);
+
+    return (
+        <div className="relative">
+            <CustomCursor />
+
+            <div className={`loader ${!loading ? 'hidden' : ''}`}>
+                <div className="text-center">
+                    <p className="font-elegant text-pearl-base tracking-[0.8em] animate-pulse">
+                        静かな真実
+                    </p>
+                </div>
+            </div>
+
+            <nav className="fixed w-full z-40 top-0 left-0 px-8 py-10 flex justify-between items-center text-pearl-base/60 text-[10px] tracking-[0.4em]">
+                <div className="font-elegant text-sm text-pearl-base tracking-[0.6em]">SILENT TRUTH</div>
+                <div className="hidden md:flex gap-12 uppercase">
+                    <a href="#prologue" className="hover:text-pearl-base transition-colors">PROLOGUE</a>
+                    <a href="#analysis" className="hover:text-pearl-base transition-colors">TRUTH</a>
+                    <a href="#purchase" className="hover:text-pearl-base transition-colors">GUIDE</a>
+                </div>
+            </nav>
+
+            <header className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
+                <div className="relative z-10 text-center px-6">
+                    <span className="reveal font-elegant italic text-pearl-dark text-xs mb-10 tracking-[1.2em] block uppercase">
+                        FOR WOMEN IN SILENT PAIN
+                    </span>
+                    <h1 className="reveal text-2xl md:text-4xl lg:text-5xl font-light leading-[2.4] mb-16 text-pearl-base">
+                        なぜ、彼の返信は<br/>
+                        ある日を境に減っていくのか。<br/>
+                        <span className="opacity-60 text-lg block mt-6">
+                            その沈黙が、あなたをこんなにも不安にさせる理由。
+                        </span>
+                    </h1>
+                    <div className="reveal">
+                        <a href="https://note.com/yoshi_kongai/n/n2d1ea73b14f5?sub_rt=share_b" className="inline-block border border-pearl-dark/30 px-16 py-6 text-[11px] tracking-[0.5em] mb-16 transition-all hover:bg-pearl-base hover:text-night-deep">
+                            読み進める
+                        </a>
+                    </div>
+                    
+                    <div className="reveal mt-4 max-w-md mx-auto px-4">
+                        <img 
+                            src="https://raw.githubusercontent.com/yossy-sns/kongai/main/assets/IMG_0212.webp" 
+                            alt="The Silent Truth"
+                            className="w-full h-auto opacity-80 mix-blend-lighten animate-float"
+                        />
+                    </div>
+                </div>
+            </header>
+
+            <section id="prologue" className="py-40 px-8 bg-night-deep">
+                <div className="max-w-5xl mx-auto">
+                    <h2 className="reveal text-3xl font-light mb-16">
+                        この恋は、<br/>誰にも見えない場所で<br/>静かに心を削っていく。
+                    </h2>
+                    <div className="reveal readable-text text-pearl-base/70 space-y-10">
+                        <p>彼からLINEが来た瞬間、心が一気に明るくなる。</p>
+                        <p>でも、返信が来ない夜は、何度もスマホを見てしまう。</p>
+                        <p>「家庭があるから仕方ない」そう自分に言い聞かせながら、<br/>本当は、ずっと不安を飲み込んできたのではありませんか。</p>
+                        <p>あなたは、彼にとって大切な存在なのか。<br/>それとも、都合のいい居場所なのか。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="analysis" className="py-48 px-8 bg-night-purple">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="reveal text-3xl font-light mb-20">
+                        男が無意識に引いている、<br/>たった一つの境界線
+                    </h2>
+
+                    <div className="grid md:grid-cols-2 gap-12">
+                        <div className="reveal p-16 bg-night-deep/50 rounded-3xl" style={{ transitionDelay: '0.2s' }}>
+                            <h3 className="mb-6 text-gold">心を使う相手</h3>
+                            <p className="text-sm leading-loose">
+                                忙しくても、不安にはさせない。<br/>
+                                連絡が減る前に、理由を伝える。<br/>
+                                彼の中で「失いたくない存在」。
+                            </p>
+                        </div>
+
+                        <div className="reveal p-16 bg-night-deep/50 rounded-3xl" style={{ transitionDelay: '0.4s' }}>
+                            <h3 className="mb-6 text-gold">安心して放置できる相手</h3>
+                            <p className="text-sm leading-loose">
+                                返事が遅れても許してくれる。<br/>
+                                会えなくても待ってくれる。<br/>
+                                彼が甘えてしまう存在。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="py-48 px-8 bg-night-deep">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="reveal text-center text-3xl mb-20">
+                        追う恋から、<br/>追われる静けさへ.
+                    </h2>
+                    
+                    <div className="reveal mb-20 max-w-lg mx-auto px-4 text-center">
+                        <img 
+                            src="https://raw.githubusercontent.com/yossy-sns/kongai/main/assets/IMG_0208.webp" 
+                            alt="The Silence Path"
+                            className="w-full h-auto opacity-70 mix-blend-lighten animate-float"
+                        />
+                    </div>
+
+                    <div className="reveal readable-text text-pearl-base/70 space-y-10 text-center">
+                        <p>彼の言葉を信じすぎないこと。</p>
+                        <p>沈黙に振り回されない心を持つこと。</p>
+                        <p>あなた自身の時間と価値を取り戻すこと。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="purchase" className="py-48 px-8 water-grad">
+                <div className="max-w-3xl mx-auto text-center">
+                    <h2 className="reveal text-4xl mb-16">
+                        この恋の主導権を、<br/>あなたの手に。
+                    </h2>
+                    <p className="reveal mb-12 text-sm opacity-80">
+                        婚外恋愛で苦しくなる理由と、<br/>心が崩れなくなる考え方をまとめました。
+                    </p>
+                    <div className="reveal text-5xl mb-12 font-elegant">1,980 JPY</div>
+                    <div className="reveal">
+                        <a href="" target="_blank"
+                           className="block bg-pearl-base text-night-deep py-8 tracking-[0.4em] hover:bg-white transition-colors">
+                            今すぐ読む
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <footer className="py-24 text-center text-sm opacity-40">
+                SILENT TRUTH — 静かな恋の真実
+            </footer>
+        </div>
+    );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
 
